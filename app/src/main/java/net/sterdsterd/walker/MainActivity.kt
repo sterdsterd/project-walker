@@ -15,8 +15,22 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import android.preference.PreferenceManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.hardware.SensorManager
+import android.hardware.Sensor.TYPE_ORIENTATION
+import android.content.Context.SENSOR_SERVICE
+import android.hardware.Sensor
+import androidx.core.content.ContextCompat.getSystemService
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+
+
+
+
+
+
 
 
 const val DETECTED_ACTIVITY = ".DETECTED_ACTIVITY"
@@ -25,6 +39,8 @@ const val ACTIVITY_TYPE = ".ACTIVITY_TYPE"
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     var mActivityRecognitionClient: ActivityRecognitionClient? = null
+    var mSensorManager: SensorManager? = null
+    var sersorrunning: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +62,29 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             } else Snackbar.make(view, "Not Available", Snackbar.LENGTH_LONG).show()
         }
 
+
+        mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val mySensors: List<Sensor>? = mSensorManager?.getSensorList(Sensor.TYPE_ORIENTATION)
+        if(mySensors?.size!! > 0){
+            mSensorManager?.registerListener(mySensorEventListener, mySensors.get(0), SensorManager.SENSOR_DELAY_NORMAL)
+            sersorrunning = true
+        } else {
+            sersorrunning = false
+            finish();
+        }
+
+    }
+
+    private val mySensorEventListener = object : SensorEventListener {
+
+        override fun onSensorChanged(event: SensorEvent) {
+            rotationX.setText("X-axis: " + event.values[1].toString())
+
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+
+        }
     }
 
     override fun onResume() {
